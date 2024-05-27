@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Depends, status, Query
+from fastapi_limiter.depends import RateLimiter
 from sqlalchemy.orm import Session
 
 from src.database.models import User
@@ -9,10 +10,12 @@ from src.schemas import ContactBase, ContactResponse, ContactUpdate
 from src.repository import contacts as repository_contacts
 from src.services.auth import auth_service
 
+
 router = APIRouter(prefix='/contacts', tags=["contacts"])
 
 
-@router.get("/", response_model=List[ContactResponse])
+@router.get("/", response_model=List[ContactResponse], description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def read_contacts(skip: int = 0, limit: int = 100, db: Session = Depends(get_db), 
                         current_user: User = Depends(auth_service.get_current_user)):
     contacts = await repository_contacts.get_contacts(skip, limit, current_user, db)
@@ -46,7 +49,8 @@ async def read_contact(contact_id: int,
     return contact
 
 
-@router.post("/", response_model=ContactResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=ContactResponse, description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))], status_code=status.HTTP_201_CREATED)
 async def create_contact(body: ContactBase, 
                          current_user: User = Depends(auth_service.get_current_user),  
                          db: Session = Depends(get_db)):
