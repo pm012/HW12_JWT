@@ -6,13 +6,20 @@ from pydantic import EmailStr
 
 from src.services.auth import auth_service
 
+from dotenv import load_dotenv
+import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
+
 conf = ConnectionConfig(
-    MAIL_USERNAME="serhii.kroshka@meta.ua",
-    MAIL_PASSWORD="TmpTmp1@",
-    MAIL_FROM="serhii.kroshka@meta.ua",
-    MAIL_PORT=465,
-    MAIL_SERVER="smtp.meta.ua",
-    MAIL_FROM_NAME="Siam Cat",
+    MAIL_USERNAME=os.getenv('MAIL_USERNAME'),
+    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD'),
+    MAIL_FROM=os.getenv('MAIL_FROM'),
+    MAIL_PORT=os.getenv('MAIL_PORT'),
+    MAIL_SERVER=os.getenv('MAIL_SERVER'),
+    MAIL_FROM_NAME=os.getenv('MAIL_FROM_NAME'),
     MAIL_STARTTLS=False,
     MAIL_SSL_TLS=True,
     USE_CREDENTIALS=True,
