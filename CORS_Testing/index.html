@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CORS Test</title>
+  </head>
+  <body>
+    <h1>CORS Test</h1>
+
+    <!-- Login Form -->
+    <div id="login-form">
+      <h2>Login</h2>
+      <label for="username">Username:</label>
+      <input type="text" id="username" name="username" />
+      <br />
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" />
+      <br />
+      <button id="login-button">Login</button>
+    </div>
+
+    <!-- Fetch Contacts Button (hidden initially) -->
+    <div id="contacts-section" style="display: none">
+      <button id="fetch-contacts-button">Fetch Contacts</button>
+      <pre id="contacts-response"></pre>
+    </div>
+
+    <script>
+      let token = "";
+
+      document
+        .getElementById("login-button")
+        .addEventListener("click", async () => {
+          const username = document.getElementById("username").value;
+          const password = document.getElementById("password").value;
+
+          const formData = new URLSearchParams();
+          formData.append("username", username);
+          formData.append("password", password);
+          formData.append("grant_type", ""); // Assuming grant_type is optional
+          formData.append("scope", ""); // Assuming scope is optional
+          formData.append("client_id", ""); // Assuming client_id is optional
+          formData.append("client_secret", ""); // Assuming client_secret is optional
+
+          console.log("Sending login request with:", formData.toString());
+
+          try {
+            const response = await fetch(
+              "http://localhost:8000/api/auth/login",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: formData,
+              }
+            );
+
+            console.log("Response status:", response.status);
+
+            if (response.ok) {
+              const data = await response.json();
+              token = data.access_token; // Assuming the response contains an access token
+              document.getElementById("login-form").style.display = "none";
+              document.getElementById("contacts-section").style.display =
+                "block";
+              console.log("Login successful, token:", token);
+            } else {
+              const error = await response.json();
+              alert("Login failed: " + error.detail);
+              console.log("Login failed:", error);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Login failed: " + error);
+          }
+        });
+
+      document
+        .getElementById("fetch-contacts-button")
+        .addEventListener("click", async () => {
+          try {
+            const response = await fetch(
+              "http://localhost:8000/api/contacts/",
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+
+            console.log("Contacts response status:", response.status);
+
+            if (response.ok) {
+              const data = await response.json();
+              document.getElementById("contacts-response").textContent =
+                JSON.stringify(data, null, 2);
+              console.log("Contacts fetched:", data);
+            } else {
+              const error = await response.json();
+              document.getElementById("contacts-response").textContent =
+                "Error: " + JSON.stringify(error);
+              console.log("Failed to fetch contacts:", error);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            document.getElementById("contacts-response").textContent =
+              "Error: " + error;
+          }
+        });
+    </script>
+  </body>
+</html>

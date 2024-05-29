@@ -7,10 +7,12 @@ blinker==1.8.2
 certifi==2024.2.2
 cffi==1.16.0
 click==8.1.7
+cloudinary==1.40.0
 cryptography==42.0.7
 dnspython==2.6.1
 ecdsa==0.19.0
 email_validator==2.1.1
+environ==1.0
 Faker==25.2.0
 fastapi==0.111.0
 fastapi-cli==0.0.3
@@ -55,6 +57,7 @@ starlette==0.37.2
 typer==0.12.3
 typing_extensions==4.11.0
 ujson==5.10.0
+urllib3==2.2.1
 uvicorn==0.29.0
 uvloop==0.19.0
 watchfiles==0.21.0
