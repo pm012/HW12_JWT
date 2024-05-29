@@ -22,7 +22,8 @@ async def read_contacts(skip: int = 0, limit: int = 100, db: Session = Depends(g
     return contacts
 
 
-@router.get("/search", response_model=List[ContactResponse])
+@router.get("/search", response_model=List[ContactResponse], description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def search_contacts(
     name: Optional[str] = Query(None),
     surname: Optional[str] = Query(None),
@@ -33,13 +34,15 @@ async def search_contacts(
     contacts = await repository_contacts.search_contacts(name, surname, email, current_user, db)
     return contacts
 
-@router.get("/birthdays", response_model=List[ContactResponse])
+@router.get("/birthdays", response_model=List[ContactResponse], description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def get_upcoming_birthdays(db: Session = Depends(get_db), current_user: User = Depends(auth_service.get_current_user)):
     contacts = await repository_contacts.get_upcoming_birthdays(current_user, db)
     return contacts
 
 
-@router.get("/{contact_id}", response_model=ContactResponse)
+@router.get("/{contact_id}", response_model=ContactResponse, description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def read_contact(contact_id: int, 
                        db: Session = Depends(get_db), 
                        current_user: User = Depends(auth_service.get_current_user)):
@@ -57,7 +60,8 @@ async def create_contact(body: ContactBase,
     return await repository_contacts.create_contact(body, current_user, db)
 
 
-@router.patch("/{contact_id}", response_model=ContactResponse)
+@router.patch("/{contact_id}", response_model=ContactResponse, description='No more than 10 requests per minute',
+            dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def update_contact(contact_id: int, 
                          body: ContactUpdate, 
                          current_user: User = Depends(auth_service.get_current_user), 
