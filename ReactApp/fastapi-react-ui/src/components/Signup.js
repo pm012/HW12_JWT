@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import { signup } from '../../redux/authSlice';
+import { signup } from '../redux/authSlice';
 import * as Yup from 'yup';
 
 const Signup = () => {
