@@ -1,6 +1,5 @@
 import unittest
-from unittest.mock import MagicMock, AsyncMock
-
+from unittest.mock import MagicMock
 from sqlalchemy.orm import Session
 
 from src.database.models import User
@@ -13,12 +12,21 @@ class TestUsersRepository(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.db = MagicMock(spec=Session)
-        self.user = User(id=1, email="test@example.com")
-        self.user_model = UserModel(email="test@example.com", password="password123")
+        self.user_model = UserModel(
+            username="testuser",
+            email="test@example.com",
+            password="pass123"
+        )
+        self.user = User(
+            id=1,
+            username=self.user_model.username,
+            email=self.user_model.email,
+            password=self.user_model.password
+        )
 
     async def test_get_user_by_email(self):
         self.db.query().filter().first.return_value = self.user
-        result = await get_user_by_email(email="test@example.com", db=self.db)
+        result = await get_user_by_email(email=self.user_model.email, db=self.db)
         self.db.query().filter().first.assert_called_once()
         self.assertEqual(result, self.user)
 
@@ -29,28 +37,26 @@ class TestUsersRepository(unittest.IsolatedAsyncioTestCase):
         self.db.add.assert_called_once()
         self.db.commit.assert_called_once()
         self.db.refresh.assert_called_once()
-        self.assertIsInstance(result, User)
+        self.assertEqual(result.email, self.user_model.email)
 
     async def test_update_token(self):
-        self.db.commit = MagicMock()
-        await update_token(user=self.user, token="newtoken", db=self.db)
-        self.assertEqual(self.user.refresh_token, "newtoken")
+        new_token = "new_token"
+        await update_token(user=self.user, token=new_token, db=self.db)
         self.db.commit.assert_called_once()
+        self.assertEqual(self.user.refresh_token, new_token)
 
     async def test_confirmed_email(self):
         self.db.query().filter().first.return_value = self.user
-        self.db.commit = MagicMock()
-        await confirmed_email(email="test@example.com", db=self.db)
-        self.assertTrue(self.user.confirmed)
+        await confirmed_email(email=self.user_model.email, db=self.db)
         self.db.commit.assert_called_once()
+        self.assertTrue(self.user.confirmed)
 
     async def test_update_avatar(self):
+        new_avatar_url = "http://new-avatar-url.com"
         self.db.query().filter().first.return_value = self.user
-        self.db.commit = MagicMock()
-        result = await update_avatar(email="test@example.com", url="http://new.avatar.url", db=self.db)
-        self.assertEqual(self.user.avatar, "http://new.avatar.url")
+        result = await update_avatar(email=self.user_model.email, url=new_avatar_url, db=self.db)
         self.db.commit.assert_called_once()
-        self.assertEqual(result, self.user)
+        self.assertEqual(result.avatar, new_avatar_url)
 
 if __name__ == '__main__':
     unittest.main()
