@@ -25,13 +25,17 @@ class TestContactsRepository(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_get_contacts(self):
-        contacts = [Contact(), Contact(), Contact()]
+        contacts = [
+            Contact(email="contact1@example.com"),
+            Contact(email="contact2@example.com"),
+            Contact(email="contact3@example.com")
+        ]
         print(f"Contacts: {contacts}")
-        q = self.db.query().filter_by()
-        q.offset().limit().all.return_value = contacts
+        mock_query = self.db.query().filter_by().offset().limit()
+        mock_query.all.return_value = contacts
         result = await get_contacts(skip=0, limit=10, user=self.user, db=self.db)  # type: ignore
         print(f"Result: {result}")
-        self.assertEqual(result, contacts)
+        self.assertEqual([contact.email for contact in result], [contact.email for contact in contacts])
 
     async def test_get_contact(self):
         self.db.query().filter().first.return_value = None

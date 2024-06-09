@@ -1,3 +1,9 @@
+#HW14_Tests_Documentation
+ python -m unittest tests/test_unit_repository_contacts.py
+ python -m unittest tests/test_unit_repository_users.py
+
+
+
 # HW13_Backend
 
 ## Instructions
