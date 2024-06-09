@@ -15,7 +15,7 @@ class TestContactsRepository(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         self.db = MagicMock(spec=Session)
-        self.user = User(id=1)
+        self.user = User(id=1, email="some@email.ua")
         self.contact_base = ContactBase(
             name="John", surname="Doe", email="john.doe@example.com", 
             phone="1234567890", birth_date=date(1990, 1, 1), additional_data="Some info"
@@ -25,10 +25,13 @@ class TestContactsRepository(unittest.IsolatedAsyncioTestCase):
         )
 
     async def test_get_contacts(self):
-        self.db.query().filter().offset().limit().all.return_value = []
-        result = await get_contacts(skip=0, limit=10, user=self.user, db=self.db)
-        self.db.query().filter().offset().limit().all.assert_called_once()
-        self.assertEqual(result, [])
+        contacts = [Contact(), Contact(), Contact()]
+        print(f"Contacts: {contacts}")
+        q = self.db.query().filter_by()
+        q.offset().limit().all.return_value = contacts
+        result = await get_contacts(skip=0, limit=10, user=self.user, db=self.db)  # type: ignore
+        print(f"Result: {result}")
+        self.assertEqual(result, contacts)
 
     async def test_get_contact(self):
         self.db.query().filter().first.return_value = None
