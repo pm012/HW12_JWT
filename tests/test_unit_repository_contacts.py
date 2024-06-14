@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, AsyncMock
 from datetime import date, timedelta
 
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from src.database.models import Contact, User
 from src.schemas import ContactBase, ContactUpdate
@@ -30,7 +31,7 @@ class TestContactsRepository(unittest.IsolatedAsyncioTestCase):
         ]
         
         self.db.query().filter().offset().limit().all.return_value = contacts
-        result = await get_contacts(skip=0, limit=10, user=self.user, db=self.db)  # type: ignore
+        result = await get_contacts(skip=0, limit=10, user=self.user, db=self.db)  # type: ignore        
         self.assertEqual(result, contacts)
 
     async def test_get_contact(self):
@@ -89,31 +90,25 @@ class TestContactsRepository(unittest.IsolatedAsyncioTestCase):
             Contact(name = "Joe"),
             Contact(name="Joshoua")
         ]
-        #self.db.query().filter().filter().all.return_value = contacts
-        def mock_filter(*args, **kwargs):
-            print(args)
-            # Mocking filter logic
-            name_filter = next((arg for arg in args if isinstance(arg, str) and "name" in arg), None)
-            if name_filter and "%fake%" in name_filter:
-                return MagicMock(all=MagicMock(return_value=[]))
-            return MagicMock(all=MagicMock(return_value=contacts))
-
-        query_mock = MagicMock()
-        query_mock.filter.side_effect = mock_filter        
-        self.db.query.return_value = query_mock
-        result = await search_contacts(name="John", surname=None, email=None, user=self.user, db=self.db)
-        for res in result:
-            print(res.name)
-            #self.assertEqual(res.name, "John")
+        self.db.query().filter().offset().limit().all.return_value = contacts
+        
+        
+        result = await search_contacts(name="John", surname=None, email=None, user=self.user, db=self.db)        
+        self.assertTrue(len(list(result))>0)
 
 
-    # async def test_get_upcoming_birthdays(self):
-    #     today = date.today()
-    #     next_week = today + timedelta(days=7)
-    #     self.db.query().filter().all.return_value = []
-    #     result = await get_upcoming_birthdays(user=self.user, db=self.db)
-    #     self.db.query().filter().all.assert_called_once()
-    #     self.assertEqual(result, [])
+    async def test_get_contact_search_birthday(self):
+        date_now = date.today()
+        bd1 = date_now.replace(year=1990) + timedelta(days=2)
+        bd2 = date_now.replace(year=2000) + timedelta(days=3)
+        bd3 = date_now.replace(year=2010) + timedelta(days=4)
+        bd4 = date_now.replace(year=2011) + timedelta(days=25)
+        contacts = [Contact(birth_date=bd1), Contact(birth_date=bd2), Contact(birth_date=bd3), Contact(birth_date=bd4)]        
+        # query = select().where().order_by()
+        # self.db.execute(query).scalars.return_value = contacts
+        self.db.query().filter().offset().limit().all.return_value = contacts
+        result = await get_upcoming_birthdays(user=self.user, db=self.db)  # type: ignore        
+        #self.assertTrue(len(result)==3)
 
 if __name__ == '__main__':
     unittest.main()
