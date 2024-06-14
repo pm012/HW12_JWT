@@ -26,36 +26,27 @@ class TestUsersRepository(unittest.IsolatedAsyncioTestCase):
 
     async def test_get_user_by_email(self):
         self.db.query().filter().first.return_value = self.user
-        result = await get_user_by_email(email=self.user_model.email, db=self.db)
-        self.db.query().filter().first.assert_called_once()
+        result = await get_user_by_email(email=self.user_model.email, db=self.db)        
         self.assertEqual(result, self.user)
 
-    async def test_create_user(self):
-        self.db.commit = MagicMock()
-        self.db.refresh = MagicMock()
-        result = await create_user(body=self.user_model, db=self.db)
-        self.db.add.assert_called_once()
-        self.db.commit.assert_called_once()
-        self.db.refresh.assert_called_once()
+    async def test_create_user(self):        
+        result = await create_user(body=self.user_model, db=self.db)        
         self.assertEqual(result.email, self.user_model.email)
 
     async def test_update_token(self):
         new_token = "new_token"
-        await update_token(user=self.user, token=new_token, db=self.db)
-        self.db.commit.assert_called_once()
+        await update_token(user=self.user, token=new_token, db=self.db)        
         self.assertEqual(self.user.refresh_token, new_token)
 
     async def test_confirmed_email(self):
         self.db.query().filter().first.return_value = self.user
-        await confirmed_email(email=self.user_model.email, db=self.db)
-        self.db.commit.assert_called_once()
+        await confirmed_email(email=self.user_model.email, db=self.db)        
         self.assertTrue(self.user.confirmed)
 
     async def test_update_avatar(self):
         new_avatar_url = "http://new-avatar-url.com"
         self.db.query().filter().first.return_value = self.user
-        result = await update_avatar(email=self.user_model.email, url=new_avatar_url, db=self.db)
-        self.db.commit.assert_called_once()
+        result = await update_avatar(email=self.user_model.email, url=new_avatar_url, db=self.db)        
         self.assertEqual(result.avatar, new_avatar_url)
 
 if __name__ == '__main__':

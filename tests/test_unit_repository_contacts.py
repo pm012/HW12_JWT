@@ -90,11 +90,17 @@ class TestContactsRepository(unittest.IsolatedAsyncioTestCase):
             Contact(name = "Joe"),
             Contact(name="Joshoua")
         ]
-        self.db.query().filter().offset().limit().all.return_value = contacts
         
-        
-        result = await search_contacts(name="John", surname=None, email=None, user=self.user, db=self.db)        
-        self.assertTrue(len(list(result))>0)
+        mock_query = self.db.query()
+        mock_query.filter.return_value = mock_query
+        mock_query.offset.return_value = mock_query
+        mock_query.limit.return_value = mock_query
+        mock_query.all.return_value = contacts
+
+        result = await search_contacts(name="John", surname=None, email=None, user=self.user, db=self.db)
+    
+        self.assertEqual([contact.name for contact in result if contact.name == "John"], [contact.name for contact in contacts if contact.name == "John"])
+
 
 
     async def test_get_contact_search_birthday(self):
@@ -103,12 +109,14 @@ class TestContactsRepository(unittest.IsolatedAsyncioTestCase):
         bd2 = date_now.replace(year=2000) + timedelta(days=3)
         bd3 = date_now.replace(year=2010) + timedelta(days=4)
         bd4 = date_now.replace(year=2011) + timedelta(days=25)
-        contacts = [Contact(birth_date=bd1), Contact(birth_date=bd2), Contact(birth_date=bd3), Contact(birth_date=bd4)]        
-        # query = select().where().order_by()
-        # self.db.execute(query).scalars.return_value = contacts
-        self.db.query().filter().offset().limit().all.return_value = contacts
+        contacts = [Contact(birth_date=bd1), Contact(birth_date=bd2), Contact(birth_date=bd3), Contact(birth_date=bd4)]
+        upcoming_birthdays = [contact for contact in contacts if 0 <= (contact.birth_date.replace(year=date_now.year) - date_now).days < 7]        
+        mock_query = self.db.query()
+        mock_query.filter.return_value = mock_query        
+        mock_query.all.return_value = upcoming_birthdays
         result = await get_upcoming_birthdays(user=self.user, db=self.db)  # type: ignore        
-        #self.assertTrue(len(result)==3)
+        print(len(result))
+        self.assertEqual(len(result), 3)
 
 if __name__ == '__main__':
     unittest.main()
